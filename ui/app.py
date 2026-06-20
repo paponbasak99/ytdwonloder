@@ -4,17 +4,12 @@ import threading
 import customtkinter
 from tkinter import filedialog
 from PIL import Image
-import math
-import pystray
-try:
-    import winreg
-except ImportError:
-    winreg = None
 
 from core.fetcher import VideoFetcher
 from core.queue_manager import DownloadQueueManager
 from utils.config import AppConfig
-from utils.helpers import sanitize_filename, format_size, format_time
+from utils.helpers import sanitize_filename, format_time
+from utils.tray_manager import TrayManager
 from ui.components import QueueItemWidget, SpinnerCanvas, DashboardCard
 from ui.animations import fade_in_image, shake_widget, animate_pulse_glow, animate_border_color, skeleton_pulse_loader, animate_gradient_flow, animate_window_fade_in
 
@@ -76,9 +71,9 @@ class YTDownloaderApp(customtkinter.CTk):
         self.is_fetching = False
         self._auto_fetch_timer = None
         
-        # Tray and Startup State
-        self.tray_icon = None
+        # Tray and Startup Manager
         self.is_hidden_to_tray = False
+        self.tray_manager = TrayManager(self)
         
         self.setup_ui()
         self.bind("<FocusIn>", self.check_clipboard)
@@ -91,7 +86,7 @@ class YTDownloaderApp(customtkinter.CTk):
         self.start_button_gradient_flow()
         
         # Protocol handling
-        self.protocol("WM_DELETE_WINDOW", self.exit_app)
+        self.protocol("WM_DELETE_WINDOW", self.tray_manager.exit_app)
         
     def setup_ui(self):
         self.rowconfigure(0, weight=1)
@@ -103,7 +98,14 @@ class YTDownloaderApp(customtkinter.CTk):
         self.main_frame.columnconfigure(0, weight=1)
         self.main_frame.rowconfigure(5, weight=1) # Queue expands
         
-        # URL Input Row
+        self._setup_url_input()
+        self._setup_preview_card()
+        self._setup_settings()
+        self._setup_utilities()
+        self._setup_action_area()
+        self._setup_queue_area()
+
+    def _setup_url_input(self):
         self.url_frame = customtkinter.CTkFrame(self.main_frame, fg_color="transparent")
         self.url_frame.grid(row=0, column=0, sticky="ew", pady=(0, 15))
         self.url_frame.columnconfigure(0, weight=1)
@@ -116,8 +118,8 @@ class YTDownloaderApp(customtkinter.CTk):
         self.url_entry.bind("<FocusOut>", lambda e: animate_border_color(self.url_entry, "#3B82F6", "#1E293B"))
         
         self.spinner = SpinnerCanvas(self.url_frame, size=20, color="#3B82F6", bg_color="#161B22")
-        
-        # Preview Card
+
+    def _setup_preview_card(self):
         self.preview_frame = customtkinter.CTkFrame(self.main_frame, fg_color="#161B22", corner_radius=16, border_width=1, border_color="#1E293B")
         self.preview_frame.grid(row=1, column=0, sticky="ew", pady=(0, 15))
         self.preview_frame.columnconfigure(1, weight=1)
@@ -134,8 +136,8 @@ class YTDownloaderApp(customtkinter.CTk):
         self.prev_channel.pack(anchor="w", pady=1)
         self.prev_duration = customtkinter.CTkLabel(self.details_frame, text="Duration: --", font=("Segoe UI Variable Display", 12), text_color="#94A3B8", anchor="w")
         self.prev_duration.pack(anchor="w", pady=1)
-        
-        # Settings Row
+
+    def _setup_settings(self):
         self.settings_frame = customtkinter.CTkFrame(self.main_frame, fg_color="transparent")
         self.settings_frame.grid(row=2, column=0, sticky="ew", pady=(0, 15))
         
@@ -155,14 +157,14 @@ class YTDownloaderApp(customtkinter.CTk):
         self.save_entry.pack(side="left", padx=(8, 4), fill="x", expand=True)
         self.save_btn = customtkinter.CTkButton(self.settings_frame, text="📁", width=32, height=32, fg_color="#161B22", hover_color="#1E293B", corner_radius=8, command=self.browse_folder)
         self.save_btn.pack(side="left", padx=(0, 0))
-        
-        # Utilities Row (Startup and Minimize to Tray)
+
+    def _setup_utilities(self):
         self.utils_frame = customtkinter.CTkFrame(self.main_frame, fg_color="transparent")
         self.utils_frame.grid(row=3, column=0, sticky="ew", pady=(0, 15))
         self.utils_frame.columnconfigure(0, weight=1)
         self.utils_frame.columnconfigure(1, weight=1)
 
-        self.startup_var = customtkinter.BooleanVar(value=self.get_startup_status())
+        self.startup_var = customtkinter.BooleanVar(value=self.tray_manager.get_startup_status())
         self.startup_check = customtkinter.CTkCheckBox(
             self.utils_frame, 
             text="Start on Windows Startup", 
@@ -170,7 +172,7 @@ class YTDownloaderApp(customtkinter.CTk):
             font=("Segoe UI Variable Display", 12), 
             text_color="#FFFFFF", 
             border_color="#3B82F6", 
-            command=self.toggle_startup
+            command=lambda: self.tray_manager.toggle_startup(self.startup_var.get())
         )
         self.startup_check.grid(row=0, column=0, sticky="w")
 
@@ -184,21 +186,20 @@ class YTDownloaderApp(customtkinter.CTk):
             text_color="#FFFFFF", 
             hover_color="#334155", 
             corner_radius=8, 
-            command=self.hide_to_tray
+            command=self.tray_manager.hide_to_tray
         )
         self.tray_btn.grid(row=0, column=1, sticky="e")
 
-        # CTA Download Button
+    def _setup_action_area(self):
         self.dl_btn = customtkinter.CTkButton(self.main_frame, text="DOWNLOAD NOW", height=48, corner_radius=12, font=("Segoe UI Variable Display", 15, "bold"), fg_color="#06B6D4", text_color="#FFFFFF", hover_color="#0891B2", command=self.download_action)
         self.dl_btn.grid(row=4, column=0, sticky="ew", pady=(0, 20))
         
-        # Start animated gradient flow on button flag
         self.dl_gradient_colors = ["#06B6D4", "#3B82F6", "#6366F1", "#3B82F6"]
         self.dl_btn_is_hovered = False
         self.dl_btn.bind("<Enter>", lambda e: self.set_btn_hover(True))
         self.dl_btn.bind("<Leave>", lambda e: self.set_btn_hover(False))
-        
-        # Queue Label & Scroll
+
+    def _setup_queue_area(self):
         q_header = customtkinter.CTkFrame(self.main_frame, fg_color="transparent")
         q_header.grid(row=5, column=0, sticky="nsew")
         q_header.columnconfigure(0, weight=1)
@@ -455,95 +456,4 @@ class YTDownloaderApp(customtkinter.CTk):
             widget = self.queue_widgets[download_id]
             widget.update_progress(data)
 
-    def get_asset_path(self, relative_path):
-        if getattr(sys, 'frozen', False):
-            base_path = sys._MEIPASS
-        else:
-            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        return os.path.join(base_path, "assets", relative_path)
 
-    def load_tray_icon_image(self):
-        try:
-            icon_path = self.get_asset_path("icon.ico")
-            if os.path.exists(icon_path):
-                return Image.open(icon_path)
-        except Exception as e:
-            print(f"Error loading tray icon image: {e}")
-        return Image.new('RGBA', (64, 64), color=(59, 130, 246, 255))
-
-    def get_startup_status(self):
-        if winreg is None:
-            return False
-        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
-        val_name = "PaponYTDwonloderSystem"
-        try:
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_READ)
-            value, _ = winreg.QueryValueEx(key, val_name)
-            winreg.CloseKey(key)
-            return True
-        except Exception:
-            return False
-
-    def toggle_startup(self):
-        if winreg is None:
-            return
-        enabled = self.startup_var.get()
-        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
-        val_name = "PaponYTDwonloderSystem"
-        
-        # Get the path to run
-        if getattr(sys, 'frozen', False):
-            app_path = f'"{sys.executable}" --startup'
-        else:
-            app_path = f'"{sys.executable}" "{os.path.abspath(sys.argv[0])}" --startup'
-            
-        try:
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE)
-            if enabled:
-                winreg.SetValueEx(key, val_name, 0, winreg.REG_SZ, app_path)
-                print("App added to startup.")
-            else:
-                try:
-                    winreg.DeleteValue(key, val_name)
-                    print("App removed from startup.")
-                except FileNotFoundError:
-                    pass
-            winreg.CloseKey(key)
-        except Exception as e:
-            print(f"Error setting startup: {e}")
-
-    def start_tray_icon(self):
-        if self.tray_icon is not None:
-            return
-        
-        image = self.load_tray_icon_image()
-        menu = pystray.Menu(
-            pystray.MenuItem("Restore", self.restore_from_tray, default=True),
-            pystray.MenuItem("Exit", self.exit_app)
-        )
-        self.tray_icon = pystray.Icon("PaponYTDwonloderSystem", image, "PAPON YT DWONLODER SYSTEM", menu)
-        threading.Thread(target=self.tray_icon.run, daemon=True).start()
-
-    def hide_to_tray(self):
-        self.is_hidden_to_tray = True
-        self.withdraw()
-        self.start_tray_icon()
-
-    def restore_from_tray(self, icon=None, item=None):
-        self.is_hidden_to_tray = False
-        self.after(0, self._restore_window)
-
-    def _restore_window(self):
-        self.deiconify()
-        self.lift()
-        self.focus_force()
-        self.attributes('-alpha', 1.0)
-
-    def exit_app(self, icon=None, item=None):
-        if self.tray_icon is not None:
-            self.tray_icon.stop()
-        self.after(0, self._destroy_app)
-
-    def _destroy_app(self):
-        self.destroy()
-        sys.exit(0)

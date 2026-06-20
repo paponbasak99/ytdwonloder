@@ -99,7 +99,7 @@ def main():
     if is_startup:
         # Hide the main window and initialize system tray icon immediately
         app.withdraw()
-        app.start_tray_icon()
+        app.tray_manager.start_tray_icon()
     
     # Run update checker in the background
     threading.Thread(target=check_updates_thread, args=(app,), daemon=True).start()
