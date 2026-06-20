@@ -1,14 +1,16 @@
 import threading
+from typing import List, Dict, Any, Callable, Optional
 from core.downloader import YoutubeDownloader
 
 class DownloadQueueManager:
-    def __init__(self, max_concurrent=3, progress_callback=None):
+    """Manages a queue of download tasks with concurrency limits."""
+    def __init__(self, max_concurrent: int = 3, progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None) -> None:
         self.max_concurrent = max_concurrent
         self.progress_callback = progress_callback
-        self.tasks = []
+        self.tasks: List[YoutubeDownloader] = []
         self.lock = threading.Lock()
 
-    def add_task(self, url, save_path, format_choice, quality_choice, audio_only, audio_format):
+    def add_task(self, url: str, save_path: str, format_choice: str, quality_choice: str, audio_only: bool, audio_format: str) -> YoutubeDownloader:
         """
         Creates a new downloader task and adds it to the queue.
         """
@@ -38,7 +40,7 @@ class DownloadQueueManager:
         self.process_queue()
         return downloader
 
-    def _on_task_progress(self, data):
+    def _on_task_progress(self, data: Dict[str, Any]) -> None:
         """
         Internal callback received from active downloaders.
         Forward it to the UI and process queue on completion states.
@@ -67,7 +69,7 @@ class DownloadQueueManager:
         if self.progress_callback:
             self.progress_callback(data)
 
-    def process_queue(self):
+    def process_queue(self) -> None:
         """
         Processes pending tasks up to the concurrency limit.
         """
@@ -87,7 +89,7 @@ class DownloadQueueManager:
                     if active_count >= self.max_concurrent:
                         break
 
-    def pause_task(self, download_id):
+    def pause_task(self, download_id: str) -> None:
         """
         Pauses an active download by cancelling the thread.
         """
@@ -112,7 +114,7 @@ class DownloadQueueManager:
                     break
         threading.Thread(target=self.process_queue, daemon=True).start()
 
-    def resume_task(self, download_id):
+    def resume_task(self, download_id: str) -> None:
         """
         Resumes a paused download by creating a new downloader wrapper.
         """
@@ -144,7 +146,7 @@ class DownloadQueueManager:
                     break
         threading.Thread(target=self.process_queue, daemon=True).start()
 
-    def cancel_task(self, download_id):
+    def cancel_task(self, download_id: str) -> None:
         """
         Cancels a task.
         """
@@ -156,7 +158,7 @@ class DownloadQueueManager:
                     # status callback will trigger process_queue inside _on_task_progress
                     break
 
-    def remove_task(self, download_id):
+    def remove_task(self, download_id: str) -> None:
         """
         Cancels and completely removes a task from the list.
         """
@@ -167,7 +169,7 @@ class DownloadQueueManager:
             self.tasks = [t for t in self.tasks if t.download_id != download_id]
         threading.Thread(target=self.process_queue, daemon=True).start()
 
-    def get_dashboard_metrics(self):
+    def get_dashboard_metrics(self) -> Dict[str, Any]:
         """
         Aggregates metrics across all tasks for the UI dashboard.
         """

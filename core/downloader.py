@@ -6,13 +6,16 @@ import uuid
 import yt_dlp
 from utils.helpers import sanitize_filename, get_unique_path
 
+from typing import Callable, Any, Optional
+
 class DownloadCancelledException(Exception):
     """Exception raised when download is cancelled by the user."""
     pass
 
 class YoutubeDownloader:
-    def __init__(self, url, save_path, format_choice="MP4", quality_choice="Best", 
-                 audio_only=False, audio_format="MP3", progress_callback=None):
+    """Manages the lifecycle of a single video/audio download."""
+    def __init__(self, url: str, save_path: str, format_choice: str = "MP4", quality_choice: str = "Best", 
+                 audio_only: bool = False, audio_format: str = "MP3", progress_callback: Optional[Callable[[dict], None]] = None) -> None:
         self.url = url
         self.save_path = save_path
         self.format_choice = format_choice

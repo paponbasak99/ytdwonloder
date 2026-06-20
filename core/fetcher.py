@@ -3,12 +3,14 @@ import urllib.request
 import re
 from PIL import Image
 from io import BytesIO
+from typing import Dict, Any, Optional
 
 class VideoFetcher:
-    def __init__(self):
+    """Handles fetching video metadata and thumbnails using yt-dlp."""
+    def __init__(self) -> None:
         pass
 
-    def fetch_metadata(self, url):
+    def fetch_metadata(self, url: str) -> Dict[str, Any]:
         """
         Extracts metadata for a video or playlist.
         Returns a dictionary with status and info.
@@ -134,7 +136,7 @@ class VideoFetcher:
                 "message": str(e)
             }
 
-    def fetch_thumbnail_image(self, url):
+    def fetch_thumbnail_image(self, url: str) -> Optional[Image.Image]:
         """
         Fetches the thumbnail image and returns a PIL Image object.
         """

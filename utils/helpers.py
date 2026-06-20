@@ -1,7 +1,9 @@
 import os
 import re
+from typing import Optional, Union
 
-def format_size(bytes_val):
+def format_size(bytes_val: Optional[Union[int, float]]) -> str:
+    """Formats a byte value into a human-readable string (e.g., KB, MB, GB)."""
     if bytes_val is None:
         return "Unknown size"
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
@@ -10,7 +12,8 @@ def format_size(bytes_val):
         bytes_val /= 1024.0
     return f"{bytes_val:.1f} PB"
 
-def format_time(seconds):
+def format_time(seconds: Optional[Union[int, float]]) -> str:
+    """Formats a time in seconds into a MM:SS or HH:MM:SS string."""
     if seconds is None:
         return "--:--"
     seconds = int(seconds)
@@ -22,7 +25,11 @@ def format_time(seconds):
     else:
         return f"{minutes}:{secs:02d}"
 
-def sanitize_filename(filename):
+def sanitize_filename(filename: str) -> str:
+    """
+    Removes characters that are illegal in Windows filenames.
+    Also trims leading/trailing spaces and dots.
+    """
     # Remove characters that are illegal in Windows filenames
     # < > : " / \ | ? *
     sanitized = re.sub(r'[<>:"/\\|?*]', '', filename)
@@ -33,7 +40,11 @@ def sanitize_filename(filename):
         sanitized = "video"
     return sanitized
 
-def get_unique_path(directory, filename):
+def get_unique_path(directory: str, filename: str) -> str:
+    """
+    Generates a unique file path in the given directory to prevent overwriting.
+    Appends (1), (2), etc., to the filename if it already exists.
+    """
     name, ext = os.path.splitext(filename)
     # Ensure name is not too long
     name = name[:200]
