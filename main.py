@@ -18,7 +18,6 @@ else:
 
 from ui.app import YTDownloaderApp
 from utils.config import AppConfig
-from utils.protection import init_security_protection
 
 def perform_pip_update(current_version, latest_version):
     """
@@ -92,7 +91,6 @@ def check_updates_thread(app_window):
         print(f"Update check failed: {e}")
 
 def main():
-    init_security_protection()
     config = AppConfig()
     is_startup = "--startup" in sys.argv
     # Initialize main App
