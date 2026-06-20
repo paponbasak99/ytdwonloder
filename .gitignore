@@ -27,3 +27,4 @@ env/
 # IDEs
 .idea/
 .vscode/
+*.exe
