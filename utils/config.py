@@ -8,10 +8,7 @@ class AppConfig:
         "quality": "Best",
         "theme": "Dark",
         "audio_only": False,
-        "audio_format": "MP3",
-        "remember_me": False,
-        "saved_username": "",
-        "saved_password": ""
+        "audio_format": "MP3"
     }
 
     def __init__(self):
