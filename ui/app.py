@@ -2,6 +2,7 @@ import os
 import sys
 import threading
 import customtkinter
+import logging
 from tkinter import filedialog
 from PIL import Image
 
@@ -252,8 +253,8 @@ class YTDownloaderApp(customtkinter.CTk):
                         self.url_entry.focus_set()
                         animate_border_color(self.url_entry, "#1E293B", "#10B981")
                         self.after(500, lambda: animate_border_color(self.url_entry, "#10B981", "#3B82F6"))
-        except Exception:
-            pass
+        except Exception as e:
+            logging.warning(f"Clipboard check error: {e}")
 
     def load_settings_to_ui(self):
         save_path = self.config.get("save_path")

@@ -257,7 +257,8 @@ class YoutubeDownloader:
                 try:
                     shutil.rmtree(self.temp_dir)
                 except Exception as cleanup_err:
-                    print(f"Error cleaning up temp directory {self.temp_dir}: {cleanup_err}")
+                    import logging
+                    logging.warning(f"Error cleaning up temp directory {self.temp_dir}: {cleanup_err}")
 
     def cancel(self):
         self.cancel_event.set()

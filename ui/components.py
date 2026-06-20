@@ -246,7 +246,8 @@ class QueueItemWidget(customtkinter.CTkFrame):
                     try:
                         os.system(f'explorer /select,"{os.path.normpath(t.final_file_path)}"')
                     except Exception as e:
-                        print(f"Error opening file location: {e}")
+                        import logging
+                        logging.warning(f"Error opening file location: {e}")
                 break
 
     def flash_green(self, step=0, max_steps=15):

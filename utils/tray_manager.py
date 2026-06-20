@@ -27,8 +27,8 @@ class TrayManager:
             if os.path.exists(icon_path):
                 return Image.open(icon_path)
         except Exception as e:
-            # We will use logging instead of print in Task 7, but I'll use print for now.
-            print(f"Error loading tray icon image: {e}")
+            import logging
+            logging.warning(f"Error loading tray icon image: {e}")
         return Image.new('RGBA', (64, 64), color=(59, 130, 246, 255))
 
     def get_startup_status(self):
@@ -67,7 +67,8 @@ class TrayManager:
                     pass
             winreg.CloseKey(key)
         except Exception as e:
-            print(f"Error setting startup: {e}")
+            import logging
+            logging.warning(f"Error setting startup: {e}")
 
     def start_tray_icon(self):
         if self.tray_icon is not None:

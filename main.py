@@ -7,6 +7,9 @@ import urllib.request
 import tkinter.messagebox as msgbox
 import yt_dlp
 import customtkinter
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Adjust sys.path to find packages
 if getattr(sys, 'frozen', False):
@@ -88,7 +91,7 @@ def check_updates_thread(app_window):
                 # Alert UI thread
                 app_window.after(1000, lambda: prompt_update(app_window, current_version, latest_version))
     except Exception as e:
-        print(f"Update check failed: {e}")
+        logging.warning(f"Update check failed: {e}")
 
 def main():
     config = AppConfig()

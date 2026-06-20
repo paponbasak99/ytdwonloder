@@ -1,6 +1,7 @@
 import customtkinter
 from PIL import Image
 import math
+import logging
 
 def hex_to_rgb(hex_str):
     hex_str = hex_str.lstrip('#')
@@ -173,8 +174,8 @@ def animate_window_fade_in(window, target_alpha=1.0, duration_ms=400, steps=20, 
         window.attributes('-alpha', alpha)
         delay = int(duration_ms / steps)
         window.after(delay, lambda: animate_window_fade_in(window, target_alpha, duration_ms, steps, step + 1))
-    except Exception:
-        pass  # Failsafe if OS doesn't support alpha transparency
+    except Exception as e:
+        logging.warning(f"Window fade animation failed: {e}")  # Failsafe if OS doesn't support alpha transparency
 
 def skeleton_pulse_loader(widget, base_color, highlight_color, is_loading_func, step=0):
     """
@@ -189,8 +190,8 @@ def skeleton_pulse_loader(widget, base_color, highlight_color, is_loading_func, 
     
     try:
         widget.configure(fg_color=current_color)
-    except Exception:
-        pass
+    except Exception as e:
+        logging.debug(f"Skeleton loader color change failed (widget might be destroyed): {e}")
         
     widget.after(50, lambda: skeleton_pulse_loader(widget, base_color, highlight_color, is_loading_func, step + 1))
 
@@ -211,8 +212,8 @@ def animate_gradient_flow(widget, colors, is_active_func, step=0):
     
     try:
         widget.configure(fg_color=current_color)
-    except Exception:
-        pass
+    except Exception as e:
+        logging.debug(f"Gradient flow color change failed (widget might be destroyed): {e}")
         
     widget.after(30, lambda: animate_gradient_flow(widget, colors, is_active_func, step + 1))
 

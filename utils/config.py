@@ -31,7 +31,8 @@ class AppConfig:
                         if key in loaded:
                             self.settings[key] = loaded[key]
             except Exception as e:
-                print(f"Error loading config: {e}")
+                import logging
+                logging.warning(f"Error loading config: {e}")
                 # Keep defaults on error
 
     def save(self):
@@ -39,7 +40,8 @@ class AppConfig:
             with open(self.config_file, "w") as f:
                 json.dump(self.settings, f, indent=4)
         except Exception as e:
-            print(f"Error saving config: {e}")
+            import logging
+            logging.warning(f"Error saving config: {e}")
 
     def get(self, key):
         return self.settings.get(key, self.DEFAULT_CONFIG.get(key))

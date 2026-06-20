@@ -149,5 +149,6 @@ class VideoFetcher:
                 img_data = response.read()
                 return Image.open(BytesIO(img_data))
         except Exception as e:
-            print(f"Error fetching thumbnail image: {e}")
+            import logging
+            logging.warning(f"Error fetching thumbnail image: {e}")
             return None
