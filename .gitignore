@@ -1,0 +1,29 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Media files
+*.mp4
+*.mkv
+*.webm
+*.mp3
+*.m4a
+*.wav
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# IDEs
+.idea/
+.vscode/
