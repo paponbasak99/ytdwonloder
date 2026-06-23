@@ -34,12 +34,12 @@ class YoutubeDownloader:
         self.final_file_path = None
 
     def get_ffmpeg_path(self):
-        if getattr(sys, 'frozen', False):
-            # PyInstaller environment
-            base_path = sys._MEIPASS
-        else:
-            # Development environment
-            # Move up from core to project root
+        try:
+            if getattr(sys, 'frozen', False):
+                base_path = sys._MEIPASS
+            else:
+                base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        except Exception:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             
         ffmpeg_path = os.path.join(base_path, "assets", "ffmpeg.exe")

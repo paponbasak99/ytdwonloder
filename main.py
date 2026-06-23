@@ -96,19 +96,20 @@ def check_updates_thread(app_window):
 def main():
     config = AppConfig()
     is_startup = "--startup" in sys.argv
-    # Initialize main App
-    app = YTDownloaderApp()
-    
-    if is_startup:
-        # Hide the main window and initialize system tray icon immediately
-        app.withdraw()
-        app.tray_manager.start_tray_icon()
-    
-    # Run update checker in the background
-    threading.Thread(target=check_updates_thread, args=(app,), daemon=True).start()
-    
-    # Run CustomTkinter main loop
-    app.mainloop()
+    def launch_app():
+        # Initialize main App.
+        app = YTDownloaderApp()
+
+        if is_startup:
+            # Hide the main window and initialize system tray icon immediately.
+            app.withdraw()
+            app.tray_manager.start_tray_icon()
+
+        # Run update checker in the background.
+        threading.Thread(target=check_updates_thread, args=(app,), daemon=True).start()
+        app.mainloop()
+
+    launch_app()
 
 if __name__ == "__main__":
     main()

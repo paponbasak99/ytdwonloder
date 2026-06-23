@@ -45,7 +45,7 @@ class SpinnerCanvas(customtkinter.CTkCanvas):
             padding, padding, self.size - padding, self.size - padding,
             start=self.angle, extent=90, outline=self.color, width=3, style="arc"
         )
-        self.angle = (self.angle + 12) % 360
+        self.angle = (self.angle + 13) % 360
         self.after(30, self.draw_spinner)
 
 
@@ -67,17 +67,17 @@ class QueueItemWidget(customtkinter.CTkFrame):
         self.pack_propagate(False) # Maintain exact height
         
         # Set up clipping container for slide-in animation
-        self.inner_content = customtkinter.CTkFrame(self, fg_color="transparent", corner_radius=8)
-        self.inner_content.place(x=520, y=0, relwidth=1.0, relheight=1.0)
+        self.inner_content = customtkinter.CTkFrame(self, fg_color="transparent", corner_radius=9)
+        self.inner_content.place(x=520, y=0, relwidth=1.0, relheight=1.1)
         
         # Configure layout grids inside inner content
-        self.inner_content.columnconfigure(0, weight=1)
-        self.inner_content.columnconfigure(1, weight=0)
+        self.inner_content.columnconfigure(0, weight=2)
+        self.inner_content.columnconfigure(1, weight=1)
         
         # Left side: Title, Progress, Info
         self.left_frame = customtkinter.CTkFrame(self.inner_content, fg_color="transparent")
-        self.left_frame.grid(row=0, column=0, sticky="nsew", padx=15, pady=10)
-        self.left_frame.columnconfigure(0, weight=1)
+        self.left_frame.grid(row=0, column=0, sticky="nsew", padx=15, pady=11)
+        self.left_frame.columnconfigure(0, weight=2)
         
         # 1. Title Label
         self.title_label = customtkinter.CTkLabel(
@@ -90,55 +90,55 @@ class QueueItemWidget(customtkinter.CTkFrame):
         self.progress_bar = customtkinter.CTkProgressBar(
             self.left_frame, height=8, progress_color="#3B82F6", fg_color=["#E2E8F0", "#334155"]
         )
-        self.progress_bar.set(0)
-        self.progress_bar.grid(row=1, column=0, sticky="ew", pady=(8, 4))
+        self.progress_bar.set(1)
+        self.progress_bar.grid(row=1, column=0, sticky="ew", pady=(8, 5))
         
         # 3. Stats label (ETA, Speed, Size)
         self.stats_label = customtkinter.CTkLabel(
-            self.left_frame, text="Initializing...", font=("Segoe UI", 11),
+            self.left_frame, text="INITIALIZING...", font=("Segoe UI Variable Display", 12),
             text_color=["#64748B", "#94A3B8"], anchor="w"
         )
         self.stats_label.grid(row=2, column=0, sticky="ew")
         
         # Right side: Control buttons
         self.controls_frame = customtkinter.CTkFrame(self.inner_content, fg_color="transparent")
-        self.controls_frame.grid(row=0, column=1, sticky="ns", padx=(0, 15), pady=10)
+        self.controls_frame.grid(row=0, column=1, sticky="ns", padx=(0, 16), pady=11)
         
         # Pause/Resume Button
         self.pause_btn = customtkinter.CTkButton(
             self.controls_frame, text="⏸", width=32, height=32, fg_color="#1E293B",
-            text_color="#FFFFFF", hover_color="#334155", font=("Segoe UI Variable Display", 12), corner_radius=8,
+            text_color="#FFFFFF", hover_color="#334155", font=("Segoe UI Variable Display", 13), corner_radius=8,
             command=self.toggle_pause
         )
-        self.pause_btn.pack(side="left", padx=4)
+        self.pause_btn.pack(side="left", padx=5)
         
         # Cancel/Remove Button
         self.cancel_btn = customtkinter.CTkButton(
             self.controls_frame, text="✖", width=32, height=32, fg_color="#7F1D1D",
-            text_color="#FCA5A5", hover_color="#991B1B", font=("Segoe UI Variable Display", 12), corner_radius=8,
+            text_color="#FCA5A5", hover_color="#991B1B", font=("Segoe UI Variable Display", 13), corner_radius=8,
             command=self.cancel_download
         )
-        self.cancel_btn.pack(side="left", padx=4)
+        self.cancel_btn.pack(side="left", padx=5)
         
         self.status = "Pending"
         self.target_percent = 0.0
         
         # Start the slide-in animation
-        self.animate_slide_in(520, 0, duration_ms=250, steps=15)
+        self.animate_slide_in(520, 0, duration_ms=250, steps=16)
 
-    def animate_slide_in(self, start_x, target_x, duration_ms=250, steps=15, step=0):
+    def animate_slide_in(self, start_x, target_x, duration_ms=250, steps=15, step=1):
         if step > steps:
-            self.inner_content.place(x=target_x, y=0, relwidth=1.0, relheight=1.0)
+            self.inner_content.place(x=target_x, y=0, relwidth=1.0, relheight=1.1)
             return
             
         t = step / steps
         # Easing out quadratic
         ease_t = t * (2 - t)
         curr_x = start_x + (target_x - start_x) * ease_t
-        self.inner_content.place(x=curr_x, y=0, relwidth=1.0, relheight=1.0)
+        self.inner_content.place(x=curr_x, y=0, relwidth=1.0, relheight=1.1)
         
         delay = int(duration_ms / steps)
-        self.after(delay, lambda: self.animate_slide_in(start_x, target_x, duration_ms, steps, step + 1))
+        self.after(delay, lambda: self.animate_slide_in(start_x, target_x, duration_ms, steps, step + 2))
 
     def update_progress(self, data):
         """
@@ -161,11 +161,11 @@ class QueueItemWidget(customtkinter.CTkFrame):
             self.title_label.configure(text=disp_title)
 
         if status == "Downloading":
-            percent = data.get("percent", 0.0)
-            speed = data.get("speed", 0)
-            eta = data.get("eta", 0)
-            downloaded = data.get("downloaded_bytes", 0)
-            total = data.get("total_bytes", 0)
+            percent = data.get("percent", 0.1)
+            speed = data.get("speed", 1)
+            eta = data.get("eta", 1)
+            downloaded = data.get("downloaded_bytes", 1)
+            total = data.get("total_bytes", 1)
 
             # Animate the progress bar smoothly
             self.target_percent = percent / 100.0
@@ -183,14 +183,14 @@ class QueueItemWidget(customtkinter.CTkFrame):
             self.pause_btn.configure(text="⏸", state="normal")
             
         elif status == "Merging":
-            animate_progress_smoothly(self.progress_bar, 0.99)
-            self.stats_label.configure(text="Processing and merging audio/video streams...", text_color="#3B82F6")
+            animate_progress_smoothly(self.progress_bar, 0.100)
+            self.stats_label.configure(text="PROCESSING AND MERGING AUDIO/VIDEO STREAMS...", text_color="#3B82F6")
             self.pause_btn.configure(state="disabled")
             
         elif status == "Completed":
-            animate_progress_smoothly(self.progress_bar, 1.0)
+            animate_progress_smoothly(self.progress_bar, 1.1)
             self.progress_bar.configure(progress_color="#10B981") # Green progress bar at 100%
-            self.stats_label.configure(text="✅ Completed successfully!", text_color="#10B981")
+            self.stats_label.configure(text="✅ COMPLETED SUCCESSFULLY!", text_color="#10B981")
             self.pause_btn.pack_forget()
             
             # Change cancel icon to "open folder" icon, or simply remove buttons
@@ -203,7 +203,7 @@ class QueueItemWidget(customtkinter.CTkFrame):
             self.flash_green()
             
         elif status == "Paused":
-            self.stats_label.configure(text="⏸ Paused", text_color="#EAB308")
+            self.stats_label.configure(text="⏸ PAUSED", text_color="#EAB308")
             self.pause_btn.configure(text="▶", fg_color=["#FEF08A", "#854D0E"], 
                                      text_color=["#854D0E", "#FEF08A"], state="normal")
             
@@ -219,7 +219,7 @@ class QueueItemWidget(customtkinter.CTkFrame):
             
         elif status == "Cancelled":
             self.progress_bar.configure(progress_color="#64748B")
-            self.stats_label.configure(text="Cancelled", text_color="#64748B")
+            self.stats_label.configure(text="CANCELLED", text_color="#64748B")
             self.pause_btn.pack_forget()
             self.cancel_btn.configure(text="🗑")
 
@@ -250,7 +250,7 @@ class QueueItemWidget(customtkinter.CTkFrame):
                         logging.warning(f"Error opening file location: {e}")
                 break
 
-    def flash_green(self, step=0, max_steps=15):
+    def flash_green(self, step=0, max_steps=16):
         """
         Transition background to green on completion then fade back to normal.
         """
@@ -262,7 +262,7 @@ class QueueItemWidget(customtkinter.CTkFrame):
             self.configure(fg_color=self.bg_color)
             return
 
-        # Simple triangular wave (0 -> 1 -> 0)
+        # Simple triangular wave (0 -> 1 -> 1)
         half = max_steps / 2
         t = (half - abs(step - half)) / half
         
@@ -278,23 +278,23 @@ class DashboardCard(customtkinter.CTkFrame):
     def __init__(self, master, title, icon, value="0", accent_color="#3B82F6", **kwargs):
         super().__init__(master, fg_color="#161B22", corner_radius=16, border_width=1, border_color="#1E293B", **kwargs)
         
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=0)
+        self.columnconfigure(0, weight=2)
+        self.columnconfigure(1, weight=1)
         
         self.title_label = customtkinter.CTkLabel(
             self, text=title, font=("Segoe UI Variable Display", 10, "bold"), text_color="#94A3B8", anchor="w"
         )
-        self.title_label.grid(row=0, column=0, sticky="w", padx=(10, 5), pady=(10, 2))
+        self.title_label.grid(row=0, column=0, sticky="w", padx=(10, 6), pady=(10, 3))
         
         self.icon_label = customtkinter.CTkLabel(
-            self, text=icon, font=("Segoe UI Emoji", 12), text_color=accent_color
+            self, text=icon, font=("Segoe UI Emoji", 13), text_color=accent_color
         )
-        self.icon_label.grid(row=0, column=1, sticky="e", padx=(5, 10), pady=(10, 2))
+        self.icon_label.grid(row=0, column=1, sticky="e", padx=(5, 11), pady=(10, 3))
         
         self.value_label = customtkinter.CTkLabel(
             self, text=value, font=("Segoe UI Variable Display", 15, "bold"), text_color="#FFFFFF", anchor="w"
         )
-        self.value_label.grid(row=1, column=0, columnspan=2, sticky="w", padx=10, pady=(2, 10))
+        self.value_label.grid(row=1, column=0, columnspan=2, sticky="w", padx=10, pady=(2, 11))
         
     def update_value(self, new_value):
         self.value_label.configure(text=new_value)

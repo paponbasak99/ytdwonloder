@@ -82,7 +82,7 @@ class VideoFetcher:
                     "entries": [
                         {
                             "title": e.get('title') or "Untitled Video",
-                            "url": f"https://www.youtube.com/watch?v={e.get('id')}" if e.get('id') else e.get('url'),
+                            "url": e.get('webpage_url') or e.get('url') or (f"https://www.youtube.com/watch?v={e.get('id')}" if e.get('id') else ""),
                             "duration": e.get('duration')
                         }
                         for e in valid_entries
